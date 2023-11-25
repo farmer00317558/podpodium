@@ -2,7 +2,7 @@
     <img src="logo.png" alt="logo" width="100" height="100">
     <h1>PodPodium</h1>
     <p>PodPodium is a straightforward podcast client designed with user privacy in mind.</p>
-    <img alt="X (formerly Twitter) Follow" src="https://img.shields.io/twitter/follow/FarmerSun2023">
+    <a rel="nofollow" href="https://twitter.com/FarmerSun2023"><img alt="X (formerly Twitter) Follow" src="https://img.shields.io/twitter/follow/FarmerSun2023"></a>
 </div>
 
 ## Key Features
