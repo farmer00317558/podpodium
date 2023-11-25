@@ -1,0 +1,4 @@
+<%
+const { routeInfo } = it;
+return routeInfo['x-api']
+%>

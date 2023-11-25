@@ -1,0 +1,25 @@
+{
+  "migIndex": 1,
+  "data": [
+    {
+      "path": "assets/fonts/LXGWWenKaiLite-Bold.ttf",
+      "sha1": "501cb3dad2a8f51b510ef8a6affef8d049dda538"
+    },
+    {
+      "path": "assets/fonts/LXGWWenKaiLite-Regular.ttf",
+      "sha1": "f72589ee42c93b25017ec1c6d0bb08e25dcc5277"
+    },
+    {
+      "path": "assets/fonts/LXGWWenKaiMonoLite-Bold.ttf",
+      "sha1": "12e25cb451201dc3a9c3e9731e996e14b7ab25f0"
+    },
+    {
+      "path": "assets/Web.bundle/quill.min.js",
+      "sha1": "d24e7a24ab5a474c62b2170cd51c9a3b5fd69ad8"
+    },
+    {
+      "path": "assets/Web.bundle/quill.snow.css",
+      "sha1": "a87d3ccd9df179277c3e03b0e741cf71db1ecd8d"
+    }
+  ]
+}

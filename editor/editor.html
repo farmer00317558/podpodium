@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="./quill.snow.css" />
+    <script src="./quill.min.js"></script>
+    <style>
+      html,
+      body {
+        overflow: hidden;
+        height: 100%;
+        height: 100vh;
+        font-size: 14px;
+        padding: 0;
+        margin: 0;
+      }
+      .ql-container {
+        font-size: 14px;
+      }
+      .ql-container.ql-snow {
+        border: 0;
+        color: ${theme.PrimaryText};
+      }
+      .ql-snow .ql-stroke {
+        stroke: ${theme.PrimaryText};
+      }
+      .ql-snow.ql-toolbar button.ql-active .ql-stroke {
+        stroke: ${theme.SecondaryText};
+      }
+      .ql-editor {
+        line-height: 1.6;
+      }
+      .ql-editor.ql-blank::before {
+        color: ${theme.SecondaryText};
+        opacity: 0.6;
+      }
+      .ql-editor ol, .ql-editor ul {
+        padding-left: 0;
+      }
+      .ql-editor li:not(.ql-direction-rtl)::before {
+        text-align: center;
+      }
+      .wrapper {
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+      }
+      .editor-wrapper {
+        overflow: hidden;
+        background-color: ${theme.CardBackground};
+        background-color: blue;
+        padding-bottom: 44px;
+        height: 90%;
+        box-sizing: border-box;
+      }
+      .footer {
+        display: flex;
+        justify-content: space-between;
+        flex-direction: row;
+        background-color: ${theme.ModalBackground};
+        height: 44px;
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+      }
+      #toolbar {
+        border: 0;
+        padding-top: 10px;
+        padding-bottom: 10px;
+      }
+      #episode-toolbar {
+        overflow: hidden;
+        padding-right: 10px;
+        display: flex;
+        align-items: center;
+      }
+      #episode-toolbar button {
+        margin-left: 8px;
+        height: 28px;
+        line-height: 28px;
+        font-size: 12px;
+        border-radius: 14px;
+        padding: 0 14px;
+      }
+      .ql-time {
+        background: transparent;
+        color: ${theme.PrimaryText};
+        border: 1px solid #ddd;
+      }
+      .ql-done {
+        background: ${theme.Primary};
+        color: white;
+        border: 0;
+      }
+      .play-time-anchor {
+        font-weight: 700;
+        text-decoration: none !important;
+        font-family: monospace;
+      }
+    </style>
+    <title>PodPodiumApp</title>
+  </head>
+  <body>
+    <div class="wrapper">
+      <div class="editor-wrapper">
+        <div id="editor"></div>
+      </div>
+      <!-- Create toolbar container -->
+      <div class="footer">
+        <div id="toolbar">
+          <button class="ql-bold"></button>
+          <button class="ql-italic"></button>
+          <button class="ql-list" value="ordered"></button>
+          <button class="ql-list" value="bullet"></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Initialize Quill editor -->
+    <script>
+      let currentTimeData = { text: '00:00', value: 0 };
+
+      window.addEventListener('message', (e) => {
+        const data = e.data;
+        if (data.type === 'currentTime') {
+          currentTimeData = data.currentTimeData;
+        }
+        console.info(e);
+      });
+
+      const Inline = Quill.import('blots/embed');
+
+      class playTimeAnchor extends Inline {
+        static className = 'play-time-anchor';
+        static blotName = 'playTimeAnchor';
+        static tagName = 'a';
+        static create(data) {
+          const node = super.create();
+          node.setAttribute('href', '#');
+          node.textContent = data.text;
+          node.addEventListener('click', (e) => {
+            e.preventDefault();
+            const messageData = JSON.stringify({ type: 'seek', position: data.value });
+            console.info(messageData);
+            alert(messageData);
+            if (window.ReactNativeWebView) {
+              window.ReactNativeWebView.postMessage(messageData);
+            }
+          });
+          return node;
+        }
+      }
+      Quill.register(playTimeAnchor);
+
+      const quill = new Quill('#editor', {
+        placeholder: 'hello',
+        theme: 'snow',
+        formats: ['bold', 'italic', 'list', 'playTimeAnchor'],
+        modules: {
+          toolbar: {
+            container: '#toolbar',
+          },
+        },
+      });
+
+      quill.on('text-change', function (delta, oldDelta, source) {
+        if (window.ReactNativeWebView) {
+          window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'textChange', delta, source }));
+        }
+      });
+    </script>
+  </body>
+</html>
