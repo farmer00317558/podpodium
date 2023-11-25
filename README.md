@@ -1,14 +1,8 @@
-<div style="text-align: center">
+<div align="center">
     <img src="logo.png" alt="logo" width="100" height="100">
     <h1>PodPodium</h1>
     <p>PodPodium is a straightforward podcast client designed with user privacy in mind.</p>
-    <div style="display:flex; width: 100%; justify-content: center; overflow-x: auto;">
-        <img src="screenshots/1.jpg"  style="flex: 1; max-width: 200px;" />
-        <img src="screenshots/2.jpg"  style="flex: 1; max-width: 200px;" />
-        <img src="screenshots/3.jpg"  style="flex: 1; max-width: 200px;" />
-        <img src="screenshots/4.jpg"  style="flex: 1; max-width: 200px;" />
-        <img src="screenshots/5.jpg"  style="flex: 1; max-width: 200px;" />
-    </div>
+    <img alt="X (formerly Twitter) Follow" src="https://img.shields.io/twitter/follow/FarmerSun2023">
 </div>
 
 ## Key Features
@@ -44,3 +38,7 @@ yarn ios
 
 <a href="https://apps.apple.com/us/app/podpodium/id1614074989?itsct=apps_box_badge&amp;itscg=30200" style="display: inline-block; overflow: hidden; border-radius: 13px; width: 250px; height: 83px;"><img src="https://tools.applemediaservices.com/api/badges/download-on-the-app-store/black/en-us?size=250x83&amp;releaseDate=1648252800" alt="Download on the App Store" style="border-radius: 13px; width: 250px; height: 83px;"></a>
 <a href='https://play.google.com/store/apps/details?id=com.lingjiangtai&utm_source=github&pcampaignid=pcampaignidMKT-Other-global-all-co-prtnr-py-PartBadge-Mar2515-1'><img alt='Get it on Google Play' style="height: 83px" src='https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png'/></a>
+
+## Screenshots
+
+[Screenshots](screenshots/README.md)
