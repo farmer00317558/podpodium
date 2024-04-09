@@ -8,13 +8,15 @@ import {
   PanGestureHandlerEventPayload,
 } from 'react-native-gesture-handler';
 import { View } from 'react-native';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import TrackPlayer, { usePlaybackState, State as TrackState } from 'react-native-track-player';
+import { observer } from 'mobx-react-lite';
+import { EpisodeData } from '@podpodium/common/lib/user-data-manager/v2';
+
 import { fmtDuration } from '../common/util';
 import { useRootState } from '../common/hook';
 import Empty from './Empty';
-import { observer } from 'mobx-react-lite';
 import { useTheme, dark } from '../common/theme';
-import { EpisodeData } from '@podpodium/common/lib/user-data-manager/v2';
 import { dataManager } from '../common/user-data';
 
 interface IProps {
@@ -29,6 +31,17 @@ const styles = StyleSheet.create({
   },
   inner: {
     height: 40,
+  },
+  cancelButton: {
+    width: 100,
+    height: 100,
+    position: 'absolute',
+    bottom: 100,
+    left: '50%',
+    transform: [{ translateX: -50 }],
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 8,
   },
   timeBar: {
     flexDirection: 'row',
@@ -63,14 +76,18 @@ function ProgressBar(props: ProgressBarProps) {
   const barWidth = useRef<number>(1);
   const dragStartPosition = useRef<number>(0);
   const dragEndPosition = useRef<number>(0);
-  const dragging = useRef(false);
+  const [dragging, setDragging] = useState(false);
   const draggingTimeoutId = useRef<NodeJS.Timeout>();
+  const cancelButtonRef = useRef<View>(null);
+  const [cancelPressed, setCancelPressed] = useState(false);
+  const touchPosition = useRef({ x: 0, y: 0 }); // 触摸位置
   const theme = useTheme();
 
   const isActive = !episode || episode.id === currentTrack?.id;
 
   useEffect(() => {
-    if (dragging.current) {
+    // 拖拽不允许自动触发进度调整
+    if (draggingTimeoutId.current || dragging) {
       return;
     }
     if (episode && !isActive) {
@@ -84,16 +101,33 @@ function ProgressBar(props: ProgressBarProps) {
     const position = currentTrack?.listenInfo?.position || 0;
     console.info('current track position:', position);
     setCurrentPosition(position);
-  }, [currentTrack?.listenInfo?.position, episode, isActive]);
+  }, [currentTrack?.listenInfo?.position, episode, isActive, dragging]);
 
   const handleGestureEvent = (e: GestureEvent<PanGestureHandlerEventPayload>) => {
-    const { translationX, state } = e.nativeEvent;
+    const { translationX, state, absoluteX, absoluteY } = e.nativeEvent;
     if (state === State.ACTIVE && currentTrack) {
       const dp = dragStartPosition.current + (translationX / barWidth.current) * duration;
-      const nextPosition = dp < 0 ? 0 : dp;
+      const nextPosition = dp < 0 ? 0 : dp > duration ? duration : dp;
       dragEndPosition.current = nextPosition;
       setCurrentPosition(nextPosition);
     }
+
+    touchPosition.current = { x: absoluteX, y: absoluteY }
+
+    cancelButtonRef.current?.measureInWindow((x, y, width, height) => {
+      const absoluteX = touchPosition.current.x
+      const absoluteY = touchPosition.current.y
+      if (
+        absoluteX >= x && absoluteX <= x + width &&
+        absoluteY >= y && absoluteY <= y + height
+      ) {
+        // 手势在取消按钮上
+        setCancelPressed(true);
+      } else {
+        // 手势不在取消按钮上
+        setCancelPressed(false);
+      }
+    });
   };
 
   const handleGestureState = async (e: GestureEvent<PanGestureHandlerEventPayload>) => {
@@ -104,23 +138,31 @@ function ProgressBar(props: ProgressBarProps) {
     }
 
     if (state === State.BEGAN) {
-      dragging.current = true;
+      setDragging(true)
       dragStartPosition.current = currentPosition;
+      touchPosition.current = { x: e.nativeEvent.absoluteX, y: e.nativeEvent.absoluteY }
       if (draggingTimeoutId.current) {
         clearTimeout(draggingTimeoutId.current);
       }
     }
 
     if (state === State.END) {
+      setDragging(false)
+      if (cancelPressed) {
+        setCurrentPosition(Math.floor(currentTrack.listenInfo?.position || 0))
+        setCancelPressed(false)
+        touchPosition.current = { x: 0, y: 0 }
+        return
+      }
+
       const nextPosition = dragEndPosition.current;
       if (trackState !== TrackState.Playing) {
         rootState.player.reportCurrentTrackListenInfo(nextPosition);
       }
       await TrackPlayer.seekTo(nextPosition);
       console.info('seek to:', nextPosition);
-
       draggingTimeoutId.current = setTimeout(() => {
-        dragging.current = false;
+        draggingTimeoutId.current = undefined;
       }, 1000);
     }
   };
@@ -155,23 +197,30 @@ function ProgressBar(props: ProgressBarProps) {
         onHandlerStateChange={handleGestureState}
         onGestureEvent={handleGestureEvent}
       >
-        <View
-          style={[
-            styles.wrapper,
-            { backgroundColor: forceLight ? dark.MaskBackground : theme.LightCardBackground },
-          ]}
-          onLayout={handleLayout}
-        >
-          <LinearGradient
-            colors={['#C2FFD8', '#465EFB']}
-            locations={[0.1, 1]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={[styles.inner, { width: `${width}%` }]}
-          />
+        <View>
+          {dragging &&
+            <View ref={cancelButtonRef} style={[styles.cancelButton, { backgroundColor: cancelPressed ? theme.Secondary : theme.MaskBackground }]}>
+              <Icon color={theme.PrimaryText} name="close" size={80} />
+            </View>
+          }
+          <View
+            style={[
+              styles.wrapper,
+              { backgroundColor: forceLight ? dark.MaskBackground : theme.LightCardBackground },
+            ]}
+            onLayout={handleLayout}
+          >
+            <LinearGradient
+              colors={['#C2FFD8', '#465EFB']}
+              locations={[0.1, 1]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={[styles.inner, { width: `${width}%` }]}
+            />
+          </View>
         </View>
       </PanGestureHandler>
-    </View>
+    </View >
   );
 }
 
